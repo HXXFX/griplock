@@ -1,0 +1,100 @@
+
+import { n, LBF } from './num.js';
+import { SHAPE } from './glock17-shape.js';
+
+const SPEC = {
+  massNoMag: n(0.630, 'kg', 'maker', ['glockG5'], 'Gen5, without magazine.'),
+  massEmptyMag: n(0.708, 'kg', 'maker', ['glockG5'], 'Gen5, with an empty magazine.'),
+  barrelLength: n(0.114, 'm', 'maker', ['glockG5']),
+  overallLength: n(0.202, 'm', 'maker', ['glockG5']),
+  slideLength: n(0.186, 'm', 'maker', ['glockG4']),
+  width: n(0.034, 'm', 'maker', ['glockG5']),
+  height: n(0.139, 'm', 'maker', ['glockG5'], 'Including magazine.'),
+  sightRadius: n(0.165, 'm', 'maker', ['glockG5']),
+  triggerPull: n(26, 'N', 'maker', ['glockG5', 'all4shootersGPT'], 'GLOCK lists 26 N; one test measured 25.6 N (5.8 lb), mean of 10 pulls.'),
+  triggerTravel: n(0.0125, 'm', 'press', ['athlonGen5'], 'Total travel from rest to the stop.'),
+  gripAngle: n(22, 'deg', 'press', ['rifleman'], 'Grip slope from vertical; a 1911 is 18.'),
+  recoilSpring: n(17, 'lb', 'maker', ['truePrecisionSprings'], 'The factory spring rating.'),
+  capacity: n(17, 'rounds', 'maker', ['glockG5']),
+  slideMass: n(0.34, 'kg', 'estimate', ['aftermarketSlides'], 'Stripped aftermarket G17 slides weigh 270-323 g; plus about 35 g of striker, extractor and sights.'),
+  barrelMass: n(0.11, 'kg', 'estimate', ['aftermarketBarrels'], 'Replacement G17 barrels weigh 91-142 g.'),
+  frameMass: n(0.18, 'kg', 'estimate', ['glockG5'], 'What is left of the 630 g gun after the slide and barrel estimates (frame, trigger parts, locking block, spring assembly).'),
+  magMass: n(0.078, 'kg', 'maker', ['glockG5'], '708 g with empty magazine minus 630 g without.'),
+  springAtRest: n(40, 'N', 'estimate', ['truePrecisionSprings'], 'Spring push with the slide closed. The 17 lb rating is read as the push at full compression (76 N), and about half that is assumed when closed.'),
+  springAtFull: n(17 * LBF, 'N', 'estimate', ['truePrecisionSprings'], 'The 17 lb rating read as the push with the slide fully back.'),
+  slideTravel: n(0.058, 'm', 'estimate', [], 'Must clear a 29.7 mm cartridge plus the gap between the breech and the top round. Easy to measure with a ruler; not yet measured.'),
+  lockedTravel: n(0.0025, 'm', 'estimate', ['patentCamming'], 'The patent gives 1-2.3 mm before unlocking begins; the barrel then cams down over about 3 mm more.'),
+  boreAboveWeb: n(-SHAPE.web.at[1] / 1000, 'm', 'estimate', [], 'Measured on the 3D model: the bore above the spot under the beavertail where a hand pushed up the grip meets the frame square on. The model is a game artist\'s, not GLOCK\'s drawings, so this is an estimate.'),
+};
+
+const GEOM = {
+  slide: SHAPE.slide,
+  frame: SHAPE.frame,
+  guardHole: SHAPE.guardHole,
+  trigger: SHAPE.trigger,
+  triggerPivot: SHAPE.triggerPivot,
+  triggerFace: SHAPE.triggerFace,
+  ejectionPort: SHAPE.ejectionPort,
+  serrationsRear: SHAPE.serrationsRear,
+  serrationsFront: SHAPE.serrationsFront,
+  rearSight: SHAPE.rearSight,
+  frontSight: SHAPE.frontSight,
+  slideTop: SHAPE.slideTop,
+  slideRear: SHAPE.slideRear,
+  seamY: SHAPE.seamY,
+  breechX: 72,
+  muzzleX: 186,
+  barrelOD: 14.5,
+  guideRodY: -12,
+  lockY: -13,
+  frontStrap: SHAPE.frontStrap,
+  backStrap: SHAPE.backStrap,
+  web: SHAPE.web,
+  webPath: SHAPE.webPath,
+  guardBottom: SHAPE.guardBottom,
+  frameLeftAboveGuard: SHAPE.frameLeftAboveGuard,
+  magBottom: SHAPE.magBottom,
+  gripSlope: SHAPE.gripAngleFront,
+  gripDepth: SHAPE.gripDepth,
+  gripWidth: SHAPE.gripWidth,
+  slideWidth: SHAPE.slideWidth,
+  frameWidth: SHAPE.frameWidth,
+  round1Shift: [27.2, 0],
+};
+
+const SX = GEOM.round1Shift[0];
+const PHYS = {
+  slide: { m: SPEC.slideMass.v, cm: [80, -1.5], size: [SHAPE.slideFront - SHAPE.slideRear, SHAPE.slideTop - SHAPE.seamY] },
+  barrel: { m: SPEC.barrelMass.v, cm: [118, 0], size: [114, 14] },
+  frameParts: [
+    { m: 0.075, at: [80 + SX, -32], size: [100, 22] },
+    { m: 0.105, at: [-6 + SX, -78], size: [55, 85] },
+  ],
+  mag: { m: SPEC.magMass.v, at: [-14 + SX, -80], size: [30, 85] },
+  magTop: [8 + SX, -27],
+  roundPitch: 5.8,
+  capacity: 17,
+  spring: { atRest: SPEC.springAtRest.v, atFull: SPEC.springAtFull.v },
+  travel: SPEC.slideTravel.v,
+  locked: SPEC.lockedTravel.v,
+  camLength: 0.003,
+  barrelDrop: 0.0022,
+  stripForce: 14,
+  stripZone: [0.004, 0.050],
+  strikerForce: 22,
+  strikerZone: [0, 0.006],
+  railFriction: 3,
+  ejectAt: 0.045,
+  feedAt: 0.054,
+};
+
+export const GLOCK17 = {
+  id: 'glock17',
+  name: 'Glock 17 Gen 5',
+  status: 'ready',
+  spec: SPEC,
+  geom: GEOM,
+  phys: PHYS,
+};
+
+export const GUNS = { glock17: GLOCK17 };

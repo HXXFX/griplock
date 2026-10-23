@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GripLock - paint a grip, fire</title>
+<meta name="description" content="Paint where and how hard a grip presses on a Glock 17, paint the finger on the trigger, fire, and see the recoil and where the shot lands.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>
+  (function () {
+    if (window.crossOriginIsolated || !window.isSecureContext || !('serviceWorker' in navigator)) return;
+    var KEY = 'griplock.coi-reload', once;
+    try { once = sessionStorage.getItem(KEY); } catch (e) { return; }
+    if (once) return;
+    var reload = function () { try { sessionStorage.setItem(KEY, '1'); } catch (e) { return; } location.reload(); };
+    navigator.serviceWorker.register('coi-sw.js').then(function () {
+      if (navigator.serviceWorker.controller) reload();
+      else navigator.serviceWorker.addEventListener('controllerchange', reload);
+    }).catch(function () {});
+  })();
+</script>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/wght.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/wght.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/latin-400.css" crossorigin="anonymous">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<header class="bar">
+  <a class="home" href="./" title="GripLock - start over (your paint is kept in this browser)">
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+      <g transform="translate(-0.32 1.96) scale(1.005)">
+        <rect class="mark-slide" x="7" y="5" width="54" height="10.5" rx="3"/>
+        <g class="mark-hand" transform="rotate(20 16 12)">
+          <rect x="16" y="12" width="21" height="7" rx="3.5"/>
+          <rect x="16" y="23" width="23" height="7" rx="3.5"/>
+          <rect x="16" y="34" width="22" height="7" rx="3.5"/>
+          <rect x="16" y="45" width="18" height="7" rx="3.5"/>
+        </g>
+      </g>
+    </svg>
+    <span class="wordmark">GripLock</span>
+  </a>
+  <span class="spacer"></span>
+  <div class="menu" id="grips-menu">
+    <button id="grips-btn" aria-haspopup="true" aria-expanded="false">Saved grips &#9662;</button>
+    <div class="pop" id="grips-pop" hidden>
+      <div class="row">
+        <select id="saved" aria-label="Saved grips"></select>
+        <button id="open-saved">Open</button>
+        <button id="delete-saved">Delete</button>
+      </div>
+      <div class="row">
+        <button id="save">Save as...</button>
+        <button id="download">Download file</button>
+        <button id="upload">Open file...</button>
+        <input type="file" id="upload-file" accept=".json,application/json" hidden>
+      </div>
+      <p class="hint">A grip is the paint on the grip and the trigger, and the press. Saved in this browser; a downloaded file opens on another computer.</p>
+    </div>
+  </div>
+  <a class="link" href="numbers.html" target="_blank" rel="noopener" aria-label="Where the numbers come from (opens in a new tab)">Where the numbers come from</a>
+</header>
+
+<main class="layout">
+  <nav class="rail" id="rail" aria-label="Brush">
+    <button data-tool="push" data-mean="force" aria-pressed="true" title="Press: add pressure where you paint">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c4-1 6-4 7-8l5-8 3 2-5 8c-2 4-5 6-10 6z" fill="currentColor"/></svg><span>Press</span></button>
+    <button data-tool="lighten" title="Lighten: take pressure away">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="9" rx="2" transform="rotate(-30 12 13)" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Lighten</span></button>
+    <button data-tool="smooth" title="Smooth: even the pressure out with its neighbours">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14c3-6 6 2 9-4s6 2 9-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Smooth</span></button>
+    <button data-tool="friction" data-mean="friction" title="Friction: paint how grippy the skin is (the grip only)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-dasharray="2 2"/></svg><span>Friction</span></button>
+    <span class="sep"></span>
+    <button id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Undo</span></button>
+    <button id="redo" title="Redo (Ctrl+Y)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 000 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Redo</span></button>
+  </nav>
+
+  <section class="stage" id="stage" aria-label="The gun and the target">
+    <canvas id="view"></canvas>
+
+    <div class="float views" id="views" role="toolbar" aria-label="Look from">
+      <button data-view="right">Right</button>
+      <button data-view="left">Left</button>
+      <button data-view="back">Back</button>
+      <button data-view="bottom">Below</button>
+      <button data-view="trigger">Trigger</button>
+      <button data-view="range">Down the range</button>
+      <button data-view="target">Target</button>
+      <label class="check"><input type="checkbox" id="show-data" checked> Numbers on the gun</label>
+    </div>
+
+    <div class="float legend" id="legend">
+      <div class="caps" id="legend-title">Pressure, psi</div>
+      <canvas id="legend-ramp" width="256" height="12"></canvas>
+      <div class="ticks" id="legend-ticks"></div>
+      <div class="slipkey" id="legend-slip" hidden><i></i> skin sliding on the gun</div>
+    </div>
+
+    <div class="float scope" id="scope" role="group" aria-label="The target, close up">
+      <div class="scope-bar" id="scope-bar" title="Drag to move the window; double-click to put it back in the corner">
+        <span class="caps">Target</span>
+        <output id="distance-out" class="num">7 yd</output>
+      </div>
+      <div class="scope-paper">
+        <canvas id="scope-paper" title="Wheel: zoom in or out. Drag: move the paper. Double-click: the whole card"></canvas>
+        <div class="scope-zoom" role="toolbar" aria-label="Zoom">
+          <button id="scope-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
+          <output id="scope-x" class="num" aria-label="Zoom">&times;1</output>
+          <button id="scope-in" title="Zoom in" aria-label="Zoom in">+</button>
+          <button id="scope-fit" title="Zoom to the holes of the Fire on show">Shots</button>
+          <button id="scope-card" title="The whole card">Card</button>
+        </div>
+        <div class="scope-hit" id="scope-hit"></div>
+      </div>
+      <div class="scope-foot">
+        <label class="caps" for="distance">Distance</label>
+        <input type="range" id="distance" min="3" max="50" step="1" value="7">
+      </div>
+      <div class="scope-grip" id="scope-grip" title="Drag to size the window" aria-hidden="true"></div>
+    </div>
+
+    <div class="corner" id="corner">
+      <div class="float readout" id="readout" hidden></div>
+      <div class="float hintbox" id="hint">
+        <b>Left-drag on the gun</b> paints the part you start on: the frame or the trigger. <b>Left-drag off it</b> (or hold
+        Alt) turns the view, <b>right-drag</b> moves it, <b>wheel</b> zooms. Go over a spot again to press it harder.
+      </div>
+    </div>
+    <div class="float banner" id="banner" role="status" hidden></div>
+    <div class="float clock num" id="clock" hidden></div>
+
+    <div class="cover" id="cover">
+      <div class="box">
+        <div class="phase" id="cover-phase">Loading the gun</div>
+        <div class="meter"><i id="cover-bar"></i></div>
+        <div class="pct" id="cover-pct">&nbsp;</div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel" id="panel">
+    <nav class="steps" id="steps" role="tablist" aria-label="Steps">
+      <button role="tab" data-step="grip" aria-selected="true"><span class="n">1</span> Grip</button>
+      <button role="tab" data-step="trigger" aria-selected="false"><span class="n">2</span> Trigger</button>
+      <button role="tab" data-step="shot" aria-selected="false"><span class="n">3</span> Shot</button>
+    </nav>
+    <div class="steps-body">
+      <section class="step" data-step="grip" role="tabpanel" aria-label="Grip">
+        <h2>Paint the grip <button class="help" data-help="grip" aria-label="How painting the grip works">?</button></h2>
+        <section class="grp" data-sec="squeeze">
+          <h3 class="grp-h"><span>Squeeze</span><span class="sv num" id="g-squeeze"></span><button class="help info" data-info="squeeze" aria-label="About the squeeze">i</button></h3>
+          <div class="in">
+            <div class="gauge limit" aria-hidden="true"><i id="g-gauge"></i></div>
+            <div class="pair"><label for="hands">Whose hands</label><select id="hands"></select></div>
+            <p class="note warn" id="g-limit-note" hidden></p>
+            <div class="stats">
+              <div class="stat force"><div class="k">Pushes, added up</div><div class="v" id="g-force">-</div></div>
+              <div class="stat"><div class="k">Painted area</div><div class="v" id="g-area">-</div></div>
+            </div>
+          </div>
+        </section>
+        <section class="grp" data-sec="brush">
+          <h3 class="grp-h"><span>Brush</span><span class="sv num" id="sv-brush"></span></h3>
+          <div class="in">
+            <div class="slim"><label for="g-radius">Size</label><input id="g-radius" type="range" min="3" max="30" step="0.5" value="10"><output id="g-radius-out" class="num"></output></div>
+            <div class="slim" id="g-amount-field"><label for="g-amount" id="g-amount-label">Press</label><input id="g-amount" type="range" min="0.1" max="4" step="0.1" value="0.6"><output id="g-amount-out" class="num"></output></div>
+            <div id="mu-field" hidden>
+              <div class="slim"><label for="mu">Friction</label><input id="mu" type="range" min="0.05" max="1.5" step="0.05" value="0.9"><output id="mu-out" class="num"></output></div>
+              <select id="mu-preset" aria-label="Friction of a known surface"></select>
+            </div>
+            <div class="choose three" id="show" role="group" aria-label="What the colours show">
+              <button data-show="pressure" data-mean="force" aria-pressed="true">Pressure</button>
+              <button data-show="friction" data-mean="friction">Friction</button>
+              <button data-show="none">Bare gun</button>
+            </div>
+            <div class="tools4">
+              <button id="mirror-rl" title="Copy the right side's paint onto the left">R &rarr; L</button>
+              <button id="mirror-lr" title="Copy the left side's paint onto the right">L &rarr; R</button>
+              <button id="clear" title="Take all the paint off the grip">Clear</button>
+              <button id="starting" title="The example grip: a grip area painted by hand, pressed evenly">Example</button>
+            </div>
+          </div>
+        </section>
+        <section class="grp" data-sec="balance">
+          <h3 class="grp-h"><span>Balance</span><span class="sv num" id="sv-balance"></span><button class="help info" data-info="balance" aria-label="About the balance">i</button></h3>
+          <div class="in"><div class="kv" id="g-balance"></div><p class="note warn" id="g-balance-warn" hidden></p></div>
+        </section>
+      </section>
+
+      <section class="step" data-step="trigger" role="tabpanel" aria-label="Trigger" hidden>
+        <h2>Paint the finger on the trigger <button class="help" data-help="trigger" aria-label="How the trigger works">?</button></h2>
+        <section class="grp" data-sec="face">
+          <h3 class="grp-h"><span>Full press</span><span class="sv num" id="t-face"></span><button class="help info" data-info="face" aria-label="About the full press">i</button></h3>
+          <div class="in">
+            <div class="gauge" aria-hidden="true"><i id="t-gauge"></i><b id="t-break"></b></div>
+            <div class="kv" id="t-face-kv"></div>
+            <p class="note warn" id="t-face-note" hidden></p>
+          </div>
+        </section>
+        <section class="grp" data-sec="brush">
+          <h3 class="grp-h"><span>Brush</span><span class="sv num" id="sv-tbrush"></span></h3>
+          <div class="in">
+            <div class="slim"><label for="t-radius">Size</label><input id="t-radius" type="range" min="1" max="8" step="0.25" value="3"><output id="t-radius-out" class="num"></output></div>
+            <div class="slim"><label for="t-amount">Press</label><input id="t-amount" type="range" min="0.5" max="10" step="0.5" value="3"><output id="t-amount-out" class="num"></output></div>
+            <div class="tools two">
+              <button id="t-clear">Clear the trigger</button>
+              <button id="t-starting" title="The example finger: a finger area painted by hand, pressed evenly">Example finger</button>
+            </div>
+            <button id="t-where" class="where" aria-pressed="false" title="Colour the trigger by how hard a push there turns it; your paint shows hatched over it">Where it turns</button>
+          </div>
+        </section>
+        <section class="grp" data-sec="press">
+          <h3 class="grp-h"><span>How it presses</span><span class="sv" id="sv-press"></span></h3>
+          <div class="in">
+            <select id="press" aria-label="How the finger presses"></select>
+            <div class="slim" id="press-time-field"><label for="press-time">Time</label><input id="press-time" type="range" min="0.08" max="0.8" step="0.01" value="0.25"><output id="press-time-out" class="num"></output></div>
+          </div>
+        </section>
+        <section class="grp" data-sec="finger">
+          <h3 class="grp-h"><span>Finger strength</span><span class="sv num" id="t-push"></span><button class="help info" data-info="finger" aria-label="About the finger's strength">i</button></h3>
+          <div class="in">
+            <div class="gauge limit" aria-hidden="true"><i id="t-limit"></i></div>
+            <p class="note warn" id="t-limit-note" hidden></p>
+          </div>
+        </section>
+      </section>
+
+      <section class="step" data-step="shot" role="tabpanel" aria-label="Shot" hidden>
+        <h2><span id="result-title">The shot</span> <button class="help" data-help="result" aria-label="What the results mean">?</button></h2>
+        <p class="hint" id="no-shot">Fire to see the shot: the replay plays on the gun, and the hole appears on the target.</p>
+        <div id="result" hidden>
+          <div class="note warn" id="r-notheld" hidden></div>
+          <div class="note" id="r-stale" hidden>The paint has changed since this shot. Fire again to see the new paint.</div>
+          <div id="r-body">
+            <section class="grp" data-sec="landed">
+              <h3 class="grp-h"><span>Landed</span><span class="sv" id="hit"></span><button class="help info" data-info="landed" aria-label="About where it landed">i</button></h3>
+              <div class="in"><div class="kv" id="hit-d"></div></div>
+            </section>
+            <section class="grp" data-sec="string" id="string-sec" hidden>
+              <h3 class="grp-h"><span>The string</span><span class="sv" id="sv-string"></span><button class="help info" data-info="string" aria-label="About the string">i</button></h3>
+              <div class="in" id="r-string"></div>
+            </section>
+            <section class="grp" data-sec="move">
+              <h3 class="grp-h"><span>The gun's movement</span><span class="sv num" id="sv-move"></span><button class="help info" data-info="move" aria-label="About the gun's movement">i</button></h3>
+              <div class="in"><div class="kv three" id="r-stats"></div></div>
+            </section>
+            <section class="grp" data-sec="trigger">
+              <h3 class="grp-h"><span>The trigger</span><span class="sv" id="sv-trigger"></span><button class="help info" data-info="shot-trigger" aria-label="About the trigger in the shot">i</button></h3>
+              <div class="in"><div class="kv" id="press-note"></div></div>
+            </section>
+            <section class="grp" data-sec="time">
+              <h3 class="grp-h"><span>Over time</span><select class="sv-select" id="chart-q" aria-label="What the chart shows"></select><button class="help info" data-info="time" aria-label="About the chart">i</button></h3>
+              <div class="in"><canvas class="chart" id="chart" aria-label="The shot over time"></canvas><p class="chart-key" id="chart-key"></p></div>
+            </section>
+            <section class="grp" data-sec="slide">
+              <h3 class="grp-h"><span>The slide</span><span class="sv" id="sv-slide"></span><button class="help info" data-info="slide" aria-label="About the slide">i</button></h3>
+              <div class="in"><div class="kv" id="r-cycle"></div></div>
+            </section>
+          </div>
+        </div>
+        <section class="grp" data-sec="shots" id="shots-block" hidden>
+          <h3 class="grp-h"><span>Shots so far</span><span class="sv num" id="sv-shots"></span></h3>
+          <div class="in">
+            <ul class="shots" id="shots"></ul>
+            <button id="load-paint" disabled>Use this shot's paint and press</button>
+          </div>
+        </section>
+      </section>
+    </div>
+
+    <footer class="fire-bar">
+      <div class="fire-line">
+        <select id="ammo" aria-label="Ammunition"></select>
+        <select id="nshots" aria-label="Shots in a string"></select>
+      </div>
+      <div class="slim" id="split-field"><label for="split">Apart</label><input id="split" type="range" min="0.12" max="1" step="0.01" value="0.25"><output id="split-out" class="num"></output></div>
+      <p class="note warn" id="fire-warn" hidden></p>
+      <button class="big fire" id="fire">Fire</button>
+      <p class="foot-line">
+        <button class="help info link" data-info="threads" id="threads">processor threads</button>
+        <span aria-hidden="true">&middot;</span>
+        <button class="help info link" data-info="credits">Credits</button>
+      </p>
+    </footer>
+  </aside>
+
+  <footer class="timeline" id="timeline">
+    <button id="play" aria-label="Play or pause the replay" disabled>Play</button>
+    <div class="track">
+      <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Time in the shot" disabled>
+      <div class="marks" id="marks"></div>
+    </div>
+    <span class="time num" id="time">no shot yet</span>
+    <select id="speed" aria-label="Replay speed">
+      <option value="0.01">1/100 speed</option>
+      <option value="0.025" selected>1/40 speed</option>
+      <option value="0.1">1/10 speed</option>
+      <option value="1">Real time</option>
+    </select>
+    <button id="video" class="video-btn" disabled title="Save the replay as an MP4 video" aria-label="Save the replay as a video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 10l5-3v10l-5-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Save video</span></button>
+  </footer>
+</main>
+
+<div class="modal" id="video-dlg" role="dialog" aria-modal="true" aria-labelledby="video-h" hidden>
+  <div class="box">
+    <h2 id="video-h">Save the replay as a video</h2>
+    <div class="video-opts" id="video-opts">
+      <label class="row"><span>Size</span>
+        <select id="video-size">
+          <option value="1080" selected>1920 &times; 1080 (Full HD)</option>
+          <option value="720">1280 &times; 720 (HD)</option>
+        </select>
+      </label>
+      <label class="row"><span>Speed</span>
+        <select id="video-speed">
+          <option value="0.01">1/100 speed</option>
+          <option value="0.025">1/40 speed</option>
+          <option value="0.1">1/10 speed</option>
+          <option value="1">Real time</option>
+        </select>
+      </label>
+      <div class="row"><span>Show</span>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="video-numbers" checked> Numbers on the gun</label>
+          <label class="check"><input type="checkbox" id="video-target" checked> Target window</label>
+          <label class="check"><input type="checkbox" id="video-key" checked> Colour key</label>
+        </div>
+      </div>
+      <p class="hint" id="video-about"></p>
+    </div>
+    <div class="video-run" id="video-run" hidden>
+      <div class="meter"><i id="video-bar"></i></div>
+      <div class="pct num" id="video-pct"></div>
+    </div>
+    <p class="note warn" id="video-err" hidden></p>
+    <div class="actions">
+      <button id="video-cancel">Cancel</button>
+      <button id="video-go" class="go">Make the video</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  setTimeout(function () {
+    if (window.__app && window.__app.ready) return;
+    var p = document.getElementById('cover-phase');
+    if (!p) return;
+    p.textContent = 'The app did not start.';
+    document.getElementById('cover-pct').innerHTML = 'It needs an internet connection for its 3D drawing library (three.js), and must be opened from ' +
+      'a web server, not as a file. Press F12 for the error.';
+  }, 20000);
+</script>
+<script type="module" src="main.js"></script>
+</body>
+</html>

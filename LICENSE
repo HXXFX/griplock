@@ -1,0 +1,91 @@
+GRIPLOCK
+Copyright (c) 2026 Windnoise. All rights reserved.
+
+PROPRIETARY LICENCE — SOURCE-AVAILABLE, NOT OPEN SOURCE
+
+This app and everything shipped with it — the code, the data, the text and the
+layout — is the property of Windnoise and is protected by copyright law, except
+the third-party material named in section 5. The app is published so that it
+can be used and read. It is not published for reuse.
+
+
+1. WHAT YOU MAY DO
+
+   a. Use the app at its published address, https://griplock.windnoise.org/
+   b. Read the source code for personal study.
+
+
+2. WHAT YOU MAY NOT DO
+
+   Without prior written permission from the copyright holder, you may not:
+
+   a. copy, reproduce or store the app or any part of it, except for the
+      transient copy your browser makes in order to run it;
+   b. modify, adapt, translate or create derivative works from it;
+   c. distribute, publish, host, mirror, sublicense, rent, lease, lend or sell
+      it, or make it available to any third party;
+   d. use it or any part of it in another work, product or service, commercial
+      or otherwise;
+   e. use it, or any data derived from it, as training material for any machine
+      learning model, dataset or automated system;
+   f. remove, obscure or alter any copyright notice, credit or attribution
+      contained in it;
+   g. claim authorship of it, present it as your own work, or represent yourself
+      as its author or originator, in whole or in part.
+
+   No rights are granted by implication, estoppel or otherwise. Every right not
+   expressly granted in section 1 is reserved.
+
+   Hosting this repository publicly on GitHub lets other GitHub users view it
+   and fork it within GitHub, because GitHub's Terms of Service require that of
+   public repositories. That grants none of the rights withheld above: a fork
+   gives no permission to use, modify, publish or redistribute the app.
+
+
+3. NO WARRANTY
+
+   THE APP IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE APP OR THE USE OR OTHER DEALINGS IN THE APP.
+
+   GripLock is a simulation built on published measurements and on estimates.
+   It is not firearms instruction, and nothing in it should be relied on for
+   handling a real firearm.
+
+
+4. YOUR DATA
+
+   Your paint, the grips you save and your settings are kept in the browser you
+   use, on that computer, and are never sent anywhere. The videos and grip files
+   you save are yours.
+
+
+5. THIRD-PARTY MATERIAL (not covered by this licence)
+
+   The gun's 3D model, assets/glock/g17_artist_parts.glb, is made from
+   "G17 Pistol - Animated" by user77 (the gun by 3dvachevsky),
+   https://sketchfab.com/3d-models/g17-pistol-animated-7723ab14e70446ef8e06a134984f287f
+   licensed under the Creative Commons Attribution 4.0 International licence
+   (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
+   Changed for GripLock: the gun alone (the arms and the animation left out),
+   placed by its barrel's muzzle, cut into frame, barrel, slide and trigger, its
+   pictures halved in size and its normal pictures converted to glTF's
+   convention. This licence claims no rights over that material; its own
+   licence applies to it.
+
+   The typefaces (Inter, JetBrains Mono and Michroma: SIL Open Font License
+   1.1), the 3D library three.js and the video library mp4-muxer (both MIT
+   License) are loaded by the page from jsDelivr. They are not part of the app
+   and keep their own licences.
+
+   GLOCK is a trademark of its owner. GripLock is not affiliated with, nor
+   endorsed by, GLOCK.
+
+
+6. PERMISSION
+
+   Requests to do anything section 2 forbids should be made in writing to the
+   copyright holder at windnoise.org.
