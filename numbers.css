@@ -1,0 +1,16 @@
+body { overflow: auto; display: block; }
+.doc { max-width: calc(var(--panel-w) * 2.6); margin: 0 auto; padding: var(--s5) var(--gutter) var(--s5); }
+.doc h1 { font-size: var(--t-xl); margin-bottom: var(--s2); }
+.doc h2 { font-size: var(--t-l); margin: var(--s5) 0 var(--s2); }
+table { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
+th, td { text-align: left; vertical-align: top; padding: var(--s2); border-bottom: 1px solid var(--line); }
+th { color: var(--ink3); font-weight: 600; }
+td.v { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+td.k { white-space: nowrap; }
+.kind-estimate { color: var(--estimate); }
+.kind-measured, .kind-maker, .kind-standard { color: var(--good); }
+.kind-press, .kind-instructor { color: var(--ink2); }
+.counts { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); margin: var(--s3) 0; }
+.src { font-size: var(--t-s); color: var(--ink2); margin: var(--s1) 0 var(--s3); }
+.src b { color: var(--ink); }
+@media (max-width: 860px) { td.k { white-space: normal; } table { display: block; overflow-x: auto; } }

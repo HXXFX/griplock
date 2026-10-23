@@ -2,31 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net/npm/three@0.170.0/ https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/ 'sha256-iUEhSXhRSwkcEqveOHunxFv4nNd4Z/VMFGIhnwiktos='; style-src 'self' https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/; style-src-attr 'unsafe-inline'; font-src https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/; img-src 'self' data: blob:; connect-src 'self' blob:; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GripLock - paint a grip, fire</title>
 <meta name="description" content="Paint where and how hard a grip presses on a Glock 17, paint the finger on the trigger, fire, and see the recoil and where the shot lands.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<script>
-  (function () {
-    if (window.crossOriginIsolated || !window.isSecureContext || !('serviceWorker' in navigator)) return;
-    var KEY = 'griplock.coi-reload', once;
-    try { once = sessionStorage.getItem(KEY); } catch (e) { return; }
-    if (once) return;
-    var reload = function () { try { sessionStorage.setItem(KEY, '1'); } catch (e) { return; } location.reload(); };
-    navigator.serviceWorker.register('coi-sw.js').then(function () {
-      if (navigator.serviceWorker.controller) reload();
-      else navigator.serviceWorker.addEventListener('controllerchange', reload);
-    }).catch(function () {});
-  })();
-</script>
+<script src="coi-start.js"></script>
 <link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/wght.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/wght.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/latin-400.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/wght.css" integrity="sha384-ZTIcl2CmY0wyM9ANOhomBco7rEUIlWztf6lGcLKCocKUrIgGCsfisuZyE+hadW8K" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/wght.css" integrity="sha384-bNykZ+bGB4FclZiYvLmgUfE8clWCvZlLOJ3v63czgIEgamTe0EhkaLXIbptJkvmW" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/latin-400.css" integrity="sha384-OxeabPnZYgG6cfpQ0THyn/XP/5lt4+Zu1lIsY3TJ96TgZd8DNOevRVQ+G6kpwQDc" crossorigin="anonymous">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+}, "integrity": {
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js": "sha384-GY5FqjttLCFRt/McQbyaVdCk2O1IQtOeX8Py6NfD89BIAsIyJFRl4UgSXrk2vXAk",
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js": "sha384-aJoe4qqS/DgF2jh9njAuvA6QIveJYoCuYOfYjdFY8P3eawzmc9bEQ40jq2TvOyuP",
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/environments/RoomEnvironment.js": "sha384-9ItPPH2vgKbkvgrqTKq7ptGYe+WuAnqlZtlqleJW4/CJjnM5R7C+efD6iS7ADPJ9",
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js": "sha384-Lq1Wl94so5JCKGDvezrdVMJhdeKQkwb8iwRo59QrPPd61CnrCJZLxYmFlQ8ZuOKR",
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/renderers/CSS2DRenderer.js": "sha384-9CXQqRjuKfYvfHem9p/LPU6b7PaeeiDuC/gp1qRz3bEV9txWG5wi9XhrkE/0/Dn9",
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/utils/BufferGeometryUtils.js": "sha384-wOjwauvHlJO7K6APr7FmMGH2nupQa3Ndzas9bJZhsAMOK055efJud8ns4aYmASKv",
+  "https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.mjs": "sha384-facaCk61vrPnP06GugWzp+qxQd54szc/tY0CmOuHnyVlgJbZsvP03XsJ4UjHQtGk"
 } }
 </script>
 </head>
@@ -347,16 +344,7 @@
   </div>
 </div>
 
-<script>
-  setTimeout(function () {
-    if (window.__app && window.__app.ready) return;
-    var p = document.getElementById('cover-phase');
-    if (!p) return;
-    p.textContent = 'The app did not start.';
-    document.getElementById('cover-pct').innerHTML = 'It needs an internet connection for its 3D drawing library (three.js), and must be opened from ' +
-      'a web server, not as a file. Press F12 for the error.';
-  }, 20000);
-</script>
+<script src="start-timeout.js"></script>
 <script type="module" src="main.js"></script>
 </body>
 </html>
