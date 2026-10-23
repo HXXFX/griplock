@@ -11,13 +11,13 @@ function load(id, grains, fps, srcId, powderGrains, caseGrams) {
     bulletMass: n(bullet, 'kg', 'maker', [srcId], `${grains} grains.`),
     muzzleVelocity: n(v, 'm/s', 'maker', [srcId], `${fps} ft/s from a 4-inch test barrel.`),
     powderMass: n(powder, 'kg', 'estimate', ['saami9mm'], `About ${powderGrains} grains; factory charges for this bullet are roughly 4-6 grains depending on the powder.`),
-    cartridgeMass: n(bullet + powder + caseGrams * 1e-3, 'kg', 'estimate', [], 'Bullet + powder + brass case and primer (about 4.3 g).'),
+    cartridgeMass: n(bullet + powder + caseGrams * 1e-3, 'kg', 'estimate', ['glockG17'], `Bullet + powder + brass case and primer (${caseGrams} g). The case and primer are what GLOCK's loaded G17 leaves for a 124 gr round: 915 g loaded - 705 g with the magazine empty = 210 g for 17 rounds, 12.35 g each ("depends on ammunition used"). (The case and primer were 4.3 g until 23 Oct 2026.)`),
   };
 }
 
 export const AMMO = {
-  '115': load('115', 115, 1180, 'federalAE9DP', 5.0, 4.3),
-  '124': load('124', 124, 1150, 'federalAE9AP', 4.6, 4.3),
+  '115': load('115', 115, 1180, 'federalAE9DP', 5.0, 4.02),
+  '124': load('124', 124, 1150, 'federalAE9AP', 4.6, 4.02),
 };
 
 export const BALLISTICS = {

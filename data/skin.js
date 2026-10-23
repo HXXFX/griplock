@@ -10,7 +10,7 @@ export const FLESH = {
 };
 
 export const FRICTION = {
-  dryTexture: { name: 'Dry hands, textured grip', mu: n(0.6, '', 'estimate', ['derler2012'], 'Dry skin is about 0.5; texture adds some bite.') },
+  dryTexture: { name: 'Dry hands, textured grip', mu: n(0.5, '', 'estimate', ['buchholz1988', 'derler2012'], 'Fingers on textured vinyl measured 0.50 +/- 0.11, a little below smooth vinyl (0.53): the texture did not add grip there. Dry skin is about 0.5 in the review. Friction fell as the pinch grew harder, so a hard grip may sit lower. Not measured on a GLOCK grip. (Was 0.6 until 23 Oct 2026.)') },
   drySmooth: { name: 'Dry hands, smooth plastic', mu: n(0.3, '', 'estimate', ['wu2009'], 'Fingertip on hard plastics measured 0.14-0.29; a palm on a smooth grip a little more.') },
   damp: { name: 'Slightly damp hands', mu: n(0.9, '', 'estimate', ['derler2012'], 'Moist skin grips harder: typically above 1 in the review.') },
   oily: { name: 'Wet or oily hands', mu: n(0.25, '', 'estimate', [], 'A film of water or oil lubricates; no direct measurement found.') },

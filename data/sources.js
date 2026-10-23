@@ -5,7 +5,14 @@ export const SOURCES = {
     who: 'GLOCK (maker)',
     url: 'https://us.glock.com/en/Pistols/G17-Gen5-FS-US',
     kind: 'maker',
-    says: '630 g without magazine, 708 g with empty magazine, 114 mm barrel, 202 mm long, 34 mm wide, 139 mm tall, 26 N trigger pull, 165 mm sight radius.',
+    says: '630 g without magazine, 708 g with empty magazine, 114 mm barrel, 202 mm long, 34 mm wide, 139 mm tall, 26 N trigger pull, 165 mm sight radius. (The page was gone on 23 Oct 2026; GLOCK now sells a Gen6.)',
+  },
+  glockG17: {
+    title: 'G17 specifications (the generation before Gen6, still listed)',
+    who: 'GLOCK (maker)',
+    url: 'https://eu.glock.com/en/products/pistols/g17',
+    kind: 'maker',
+    says: '625 g without magazine, 705 g with an empty magazine, 915 g with a loaded magazine ("depends on ammunition used"); 17 rounds; trigger pull 28 N ("depends on configuration"); 114 mm barrel, 186 mm slide. Read 23 Oct 2026.',
   },
   glockG4: {
     title: 'G17 Gen4 MOS specifications',
@@ -99,11 +106,11 @@ export const SOURCES = {
     says: 'Dry skin friction typically about 0.5; moist or wet skin typically above 1. Skin moisture is the main cause of the spread.',
   },
   buchholz1988: {
-    title: 'Quantitative analysis of finger friction (Buchholz, Frederick & Armstrong 1988)',
+    title: 'An investigation of human palmar skin friction and the effects of materials, pinch force and moisture (Buchholz, Frederick & Armstrong 1988, Ergonomics 31(3))',
     who: 'via University of Michigan friction table',
     url: 'https://websites.umich.edu/~tja/frictionDataMethods.html',
     kind: 'measured',
-    says: 'Skin on adhesive tape 0.41 dry / 0.66 moist; on suede 0.39 / 0.66; on paper 0.27 / 0.42.',
+    says: 'Fingers pinching a dynamometer covered in each material until it slipped: textured vinyl 0.50 +/- 0.11, smooth vinyl 0.53, aluminium 0.38, sandpaper 0.61; skin on adhesive tape 0.41 dry / 0.66 moist; on suede 0.39 / 0.66; on paper 0.27 / 0.42. Friction fell as the pinch grew harder, for every material.',
   },
   fingerPlacement: {
     title: 'Optimal finger placement on trigger',
