@@ -1,5 +1,7 @@
 # GripLock
 
+## https://griplock.windnoise.org/
+
 Paint where and how hard a grip presses on a Glock 17, paint the finger on the trigger, and fire. GripLock replays the
 recoil in slow motion with its numbers on the gun, and shows where the shot lands on a target down the range. Change
 the paint and fire again.
