@@ -76,8 +76,8 @@ can be used and read. It is not published for reuse.
    convention. This licence claims no rights over that material; its own
    licence applies to it.
 
-   The typefaces (Inter, JetBrains Mono and Michroma: SIL Open Font License
-   1.1), the 3D library three.js and the video library mp4-muxer (both MIT
+   The typefaces (Inter and Michroma: SIL Open Font License 1.1), the 3D
+   library three.js and the video library mp4-muxer (both MIT
    License) are loaded by the page from jsDelivr. They are not part of the app
    and keep their own licences.
 

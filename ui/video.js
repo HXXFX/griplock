@@ -21,6 +21,18 @@ function shown(el) {
 function paintBox(g, el, cs, r, o) {
   const rad = Math.min(px(cs.borderTopLeftRadius), r.height / 2, r.width / 2);
   const x = r.left - o.left, y = r.top - o.top;
+  const back = cs.backdropFilter || cs.webkitBackdropFilter;
+  if (back && back !== 'none') {
+    const t = g.getTransform(), k = t.a, pad = 2 * Math.max(0, ...[...back.matchAll(/blur\(([\d.]+)px\)/g)].map((m) => +m[1])) * k;
+    g.save();
+    g.beginPath(); g.roundRect(x, y, r.width, r.height, rad); g.clip();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.filter = back.replace(/blur\(([\d.]+)px\)/g, (m, v) => `blur(${v * k}px)`);
+    const sx = Math.max(0, Math.floor(x * k + t.e - pad)), sy = Math.max(0, Math.floor(y * k + t.f - pad));
+    const sw = Math.min(g.canvas.width - sx, Math.ceil(r.width * k + 2 * pad)), sh = Math.min(g.canvas.height - sy, Math.ceil(r.height * k + 2 * pad));
+    if (sw > 0 && sh > 0) g.drawImage(g.canvas, sx, sy, sw, sh, sx, sy, sw, sh);
+    g.restore();
+  }
   if (!transparent(cs.backgroundColor)) {
     g.fillStyle = cs.backgroundColor;
     g.beginPath(); g.roundRect(x, y, r.width, r.height, rad); g.fill();
@@ -67,6 +79,16 @@ function paintText(g, node, o) {
     if (text[0] === ' ' && (!q || q.width === 0)) text = text.slice(1);
   }
   if (cs.textTransform === 'uppercase') text = text.toUpperCase();
+  let capAt = -1;
+  for (let b = el; b && b !== document.body; b = b.parentElement) {
+    if (getComputedStyle(b, '::first-letter').textTransform !== 'uppercase') continue;
+    const walk = document.createTreeWalker(b, NodeFilter.SHOW_TEXT, { acceptNode: (t) => (t.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP) });
+    if (walk.nextNode() === node) {
+      const i = text.search(/\S/); if (i >= 0) text = text.slice(0, i) + text[i].toUpperCase() + text.slice(i + 1);
+      capAt = node.textContent.search(/\S/);
+    }
+    break;
+  }
   g.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
   g.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
   g.fillStyle = cs.color; g.textBaseline = 'alphabetic'; g.textAlign = 'left';
@@ -82,7 +104,7 @@ function paintText(g, node, o) {
   for (let i = 0; i < node.textContent.length; i++) {
     range.setStart(node, i); range.setEnd(node, i + 1);
     const q = range.getClientRects()[0];
-    const ch = cs.textTransform === 'uppercase' ? node.textContent[i].toUpperCase() : node.textContent[i];
+    const ch = cs.textTransform === 'uppercase' || i === capAt ? node.textContent[i].toUpperCase() : node.textContent[i];
     if (!q || q.width === 0) { if (at) run += ch; continue; }
     if (at && Math.abs(q.top - at.top) > 1) { draw(run.replace(/\s+/g, ' ').trimEnd(), at); run = ''; at = null; }
     if (!at) { at = q; run = ch.trimStart(); } else run += ch;
@@ -139,7 +161,8 @@ export function paintStage(g, stage, view3d, k) {
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.drawImage(view3d, 0, 0, g.canvas.width, g.canvas.height);
   g.setTransform(k, 0, 0, k, 0, 0);
-  const layers = [...stage.children].filter((e) => e !== view3d && !e.classList.contains('cover'));
+  const layers = [...stage.children].flatMap((e) => (e.classList.contains('open') ? [...e.children] : [e]))
+    .filter((e) => e !== view3d && !e.classList.contains('cover'));
   const top = layers.filter((e) => +getComputedStyle(e).zIndex > 0);
   for (const e of [...layers.filter((x) => !top.includes(x)), ...top]) paintTree(g, e, o, stage);
 }

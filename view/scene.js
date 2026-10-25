@@ -17,7 +17,7 @@ const VIEWS = {
 };
 const LASER = 1500;
 
-export async function createScene(canvas, { stage, onLoad } = {}) {
+export async function createScene(canvas, { stage, open, onLoad } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -65,22 +65,39 @@ export async function createScene(canvas, { stage, onLoad } = {}) {
   const beforeLabels = [];
   const afterLabels = [];
   const keepClear = [];
+  const onView = [];
   const draw = () => { dirty = true; };
   controls.addEventListener('change', draw);
+  controls.addEventListener('start', () => { for (const fn of onView) fn('free'); });
+  function openBox() {
+    const c = canvas.getBoundingClientRect(), all = { x: 0, y: 0, w: c.width, h: c.height };
+    if (!open) return all;
+    const o = open.getBoundingClientRect();
+    const x0 = Math.max(0, o.left - c.left), y0 = Math.max(0, o.top - c.top);
+    const x1 = Math.min(c.width, o.right - c.left), y1 = Math.min(c.height, o.bottom - c.top);
+    return x1 > x0 && y1 > y0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : all;
+  }
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     labels.setSize(w, h);
     camera.aspect = w / h;
+    const b = openBox();
+    camera.setViewOffset(w, h, w / 2 - (b.x + b.w / 2), h / 2 - (b.y + b.h / 2), w, h);
     camera.updateProjectionMatrix();
     if (started) render(); else draw();
   }
   let started = false;
   new ResizeObserver(resize).observe(canvas);
+  if (open) new ResizeObserver(resize).observe(open);
   resize();
 
   function setView(name) {
+    place(name);
+    for (const fn of onView) fn(name);
+  }
+  function place(name) {
     if (name === 'range') {
       camera.position.copy(target.fromAim(-900, 200, 150));
       controls.target.copy(target.fromAim(3000, -420, 60));
@@ -99,7 +116,8 @@ export async function createScene(canvas, { stage, onLoad } = {}) {
       return;
     }
     const [d, near, span] = VIEWS[name];
-    const dist = Math.max(near, span / 2 / (Math.tan((camera.fov * Math.PI) / 360) * camera.aspect));
+    const b = openBox(), wide = b.w / (canvas.clientHeight || b.h || 1);
+    const dist = Math.max(near, span / 2 / (Math.tan((camera.fov * Math.PI) / 360) * (wide || camera.aspect)));
     const dir = new THREE.Vector3(...d).normalize();
     const at = name === 'trigger' ? new THREE.Vector3(G.triggerFace[0], G.triggerFace[1], 0) : TARGET;
     controls.target.copy(at);
@@ -178,7 +196,7 @@ export async function createScene(canvas, { stage, onLoad } = {}) {
   for (const dy of [0, 22, -22, 44, -44, 66, -66, 88, -88, 110, -110, 132, -132]) for (const dx of [0, 60, -60, 120, -120]) if (dx || dy) NUDGE.push([dx, dy]);
   NUDGE.sort((p, q) => Math.hypot(...p) - Math.hypot(...q));
   function declutter() {
-    const box = labels.domElement.getBoundingClientRect(), EDGE = 4;
+    const box = (open || labels.domElement).getBoundingClientRect(), EDGE = 4;
     const kept = stage ? [...stage.querySelectorAll('.float')]
       .filter((e) => e.offsetParent && !e.hidden && getComputedStyle(e).opacity > 0.1).map((e) => e.getBoundingClientRect()) : [];
     for (const fn of keepClear) kept.push(...fn());
@@ -211,7 +229,7 @@ export async function createScene(canvas, { stage, onLoad } = {}) {
   }
 
   return {
-    renderer, scene, camera, controls, parts, canvas, target, labels, beforeLabels, afterLabels, keepClear,
+    renderer, scene, camera, controls, parts, canvas, target, labels, beforeLabels, afterLabels, keepClear, openBox, onView,
     draw, setView, pick, poseFromFrame, poseRest, setAim,
     animate(fn) { animating = fn; draw(); },
     frameMeshesToGun: () => meshesToGun(parts.frameMeshes),

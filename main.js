@@ -38,7 +38,7 @@ const loadBin = (name) => fetch(new URL(`./data/${name}`, import.meta.url)).then
 const [frameBuf, triggerBuf] = await Promise.all([loadBin('gun-surface.bin'), loadBin('trigger-surface.bin')]);
 const surface = parseSurface(frameBuf), tsurface = parseSurface(triggerBuf);
 const sigs = { frame: store.surfaceSignature(surface), trigger: store.surfaceSignature(tsurface) };
-const view = await createScene($('view'), { stage: $('stage'), onLoad: (s) => cover.show('Loading the gun', s * 0.9) });
+const view = await createScene($('view'), { stage: $('stage'), open: $('open'), onLoad: (s) => cover.show('Loading the gun', s * 0.9) });
 cover.show('Preparing the paint', 0.95);
 const heat = createHeat(surface, FRAME_GRID), theat = createHeat(tsurface, TRIGGER_GRID);
 for (const { mesh, toGun } of view.frameMeshesToGun()) for (const m of [].concat(mesh.material)) heat.patch(m, toGun);
@@ -47,7 +47,7 @@ const notes = createAnnotations(view);
 
 const DEMO = false;
 const scope = createScope({
-  win: $('scope'), bar: $('scope-bar'), paper: $('scope-paper'), grip: $('scope-grip'), stage: $('stage'),
+  win: $('scope'), bar: $('scope-bar'), paper: $('scope-paper'), grip: $('scope-grip'), stage: $('open'),
   zoomOut: $('scope-out'), zoomIn: $('scope-in'), zoomText: $('scope-x'), fitShots: $('scope-fit'), wholeCard: $('scope-card'),
   keep: DEMO ? null : 'recoil-control.scope',
 });
@@ -197,7 +197,8 @@ const pressOuts = () => {
 for (const id of ['press', 'press-time']) $(id).addEventListener('input', pressOuts);
 
 function drawLegend() {
-  $('legend').hidden = ui.show === 'none' && !whereOn();
+  $('legend-scale').hidden = ui.show === 'none' && !whereOn();
+  $('key-tab').textContent = whereOn() ? 'Turns' : ui.show === 'friction' ? 'Friction' : ui.show === 'none' ? 'Key' : 'Pressure';
   const c = $('legend-ramp'), g = c.getContext('2d');
   const px = whereOn() ? leverRamp() : ui.show === 'friction' ? frictionRamp() : pressureRamp();
   const img = g.createImageData(256, 1); img.data.set(px);
@@ -392,21 +393,27 @@ function showHits() {
 $('ammo').innerHTML = Object.values(AMMO).map((a) => `<option value="${a.id}"${a.id === '124' ? ' selected' : ''}>${a.name}</option>`).join('');
 const shooter = createShooter();
 let pool = null;
+function saysThreads(line, more, state) {
+  if (line !== null) $('threads').textContent = line;
+  $('threads-more').innerHTML = more;
+  if (state) for (const id of ['threads', 'about-btn']) { $(id).classList.remove('idle', 'ok', 'notice', 'bad'); $(id).classList.add(state); }
+}
 shooter.warm().then((w) => {
   pool = w;
-  $('threads').textContent = w.shared ? `${w.threads} of ${w.of} processor threads` : '1 processor thread';
-  INFO.threads = w.shared
+  saysThreads(w.shared ? `${w.threads} of ${w.of} processor threads` : '1 processor thread', w.shared
     ? `<p>Each shot is worked out on <b>${w.threads}</b> of this computer's <b>${w.of}</b> processor threads; one is left free for the page.</p>`
-    : '<p>Each shot is worked out on <b>1</b> processor thread: this browser did not let the page split the work between threads, so a shot takes longer.</p>';
-}).catch((e) => { $('threads').textContent = 'no processor threads'; INFO.threads = `<p>${e.message}</p>`; });
+    : '<p>Each shot is worked out on <b>1</b> processor thread: this browser did not let the page split the work between threads, so a shot takes longer.</p>',
+  w.shared ? 'ok' : 'notice');
+}).catch((e) => saysThreads('No processor threads', `<p>${e.message}</p>`, 'bad'));
 INFO.credits = '<p>The gun: "G17 Pistol - Animated" by user77 (the gun by 3dvachevsky), ' +
   '<a href="https://sketchfab.com/3d-models/g17-pistol-animated-7723ab14e70446ef8e06a134984f287f" target="_blank" rel="noopener">on Sketchfab</a>, ' +
   'licensed <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; changed for GripLock: placed at its real size and cut into its parts.</p>' +
-  '<p>Fonts: Inter by Rasmus Andersson, JetBrains Mono by JetBrains and, for the name, Michroma by Vernon Adams (SIL Open Font License 1.1). ' +
+  '<p>Fonts: Inter by Rasmus Andersson and, for the name, Michroma by Vernon Adams (SIL Open Font License 1.1). ' +
   'The 3D drawing: three.js; the videos: mp4-muxer (both MIT License).</p>' +
   '<p class="plate"><span>GripLock &middot; <a href="https://windnoise.org" target="_blank" rel="noopener">A Windnoise solution</a> &middot; ' +
   '<a href="https://github.com/HXXFX/griplock" target="_blank" rel="noopener" aria-label="HXXFX: the source of GripLock on GitHub">HXXFX</a></span>' +
   '<span>&copy; 2026 Windnoise &middot; All rights reserved</span></p>';
+$('credits').innerHTML = INFO.credits;
 
 $('nshots').innerHTML = Array.from({ length: 17 }, (_, i) => `<option value="${i + 1}">${i + 1} shot${i ? 's' : ''}</option>`).join('');
 const stringOuts = () => {
@@ -527,9 +534,9 @@ function show(shot) {
     $('sv-slide').textContent = s.stovepipe ? 'jammed' : s.cycle === null ? 'not home' : `home at ${f(s.cycle, 0)} ms`;
     $('sv-slide').classList.toggle('warn', s.stovepipe || s.cycle === null || !s.chambered);
   }
-  $('threads').textContent = `${f(o.ms / 1000, 1)} s on ${o.info.threads} thread${o.info.threads > 1 ? 's' : ''}`;
-  INFO.threads = `<p>Fire ${shot.n} was worked out in <b>${f(o.ms / 1000, 1)} s</b> on <b>${o.info.threads}</b> processor thread${o.info.threads > 1 ? 's' : ''}` +
-    (pool && pool.of ? ` of this computer's ${pool.of}; one is left free for the page.</p>` : '.</p>');
+  saysThreads(`${f(o.ms / 1000, 1)} s on ${o.info.threads} thread${o.info.threads > 1 ? 's' : ''}`,
+    `<p>Fire ${shot.n} was worked out in <b>${f(o.ms / 1000, 1)} s</b> on <b>${o.info.threads}</b> processor thread${o.info.threads > 1 ? 's' : ''}` +
+    (pool && pool.of ? ` of this computer's ${pool.of}; one is left free for the page.</p>` : '.</p>'), null);
   showString(shot);
   renderShots();
   showHits();
@@ -631,7 +638,7 @@ function startReplay(shot) {
   for (const id of ['play', 'scrub', 'video']) $(id).disabled = false;
   $('hint').classList.add('faded');
   view.setAim(o.settle.held ? o.frames.subarray(o.settleFrames * o.frameWidth, (o.settleFrames + 1) * o.frameWidth) : null);
-  $('play').textContent = 'Pause';
+  playing(true);
   const marks = [];
   const at = (t) => (100 * (t - t0)) / (t1 - t0);
   for (const e of o.events) {
@@ -653,6 +660,8 @@ function startReplay(shot) {
 }
 function spaceMarks() {
   const names = [...$('marks').querySelectorAll('b')];
+  const end = $('marks').getBoundingClientRect().right;
+  for (const b of names) { b.parentElement.classList.remove('left'); if (b.getBoundingClientRect().right > end) b.parentElement.classList.add('left'); }
   names.sort((a, b) => (b.parentElement.classList.contains('shot') ? 1 : 0) - (a.parentElement.classList.contains('shot') ? 1 : 0));
   const kept = [];
   for (const b of names) {
@@ -660,6 +669,7 @@ function spaceMarks() {
     const r = b.getBoundingClientRect();
     if (kept.some((k) => r.left < k.right + 4 && r.right + 4 > k.left)) b.style.visibility = 'hidden'; else kept.push(r);
   }
+  for (const b of names) b.parentElement.classList.toggle('named', b.style.visibility !== 'hidden');
 }
 function frameAt(o, t) {
   let lo = replay.from, hi = o.nFrames - 1;
@@ -737,19 +747,24 @@ function leaveReplay() {
   heat.setAll(paint.pressure, paint.friction); theat.setAll(tpaint.pressure, tShade);
   notes.setPeak(null); notes.setBullet(null); notes.setTrail(null);
   updateGrip(); updateTrigger();
-  $('readout').hidden = true; $('play').textContent = 'Play';
+  $('readout').hidden = true; playing(false);
   if (arrived !== Infinity) { arrived = Infinity; showHits(); }
   drawLegend();
   drawShotChart(null);
 }
+function playing(on) {
+  $('play').classList.toggle('playing', on);
+  $('play').setAttribute('aria-label', on ? 'Pause the replay' : 'Play the replay');
+  $('play').title = on ? 'Pause (Space)' : 'Play (Space)';
+}
 $('play').addEventListener('click', () => {
   if (!replay) { if (current) startReplay(current); return; }
   replay.playing = !replay.playing; replay.last = performance.now();
-  $('play').textContent = replay.playing ? 'Pause' : 'Play';
+  playing(replay.playing);
 });
 $('scrub').addEventListener('input', () => {
   if (!replay) return;
-  replay.playing = false; $('play').textContent = 'Play';
+  replay.playing = false; playing(false);
   replay.tMs = (+$('scrub').value / 1000) * (replay.t1 - replay.t0) * 1000;
 });
 
@@ -861,9 +876,12 @@ $('video-go').addEventListener('click', async () => {
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('video-dlg').hidden) $('video-cancel').click(); });
 
+const MENUS = [['grips-menu', 'grips-btn', 'grips-pop'], ['about-menu', 'about-btn', 'about-pop']];
 const menu = $('grips-pop');
-$('grips-btn').addEventListener('click', (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; $('grips-btn').setAttribute('aria-expanded', String(!menu.hidden)); });
-document.addEventListener('click', (e) => { if (!menu.hidden && !$('grips-menu').contains(e.target)) { menu.hidden = true; $('grips-btn').setAttribute('aria-expanded', 'false'); } });
+function shut(but) { for (const [, b, p] of MENUS) if (b !== but) { $(p).hidden = true; $(b).setAttribute('aria-expanded', 'false'); } }
+for (const [, b, p] of MENUS) $(b).addEventListener('click', (e) => { e.stopPropagation(); shut(b); $(p).hidden = !$(p).hidden; $(b).setAttribute('aria-expanded', String(!$(p).hidden)); });
+document.addEventListener('click', (e) => { if (!MENUS.some(([m]) => $(m).contains(e.target))) shut(null); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') shut(null); });
 function listSaved() {
   const all = store.listSaved();
   $('saved').innerHTML = all.length ? all.map((g) => `<option>${g.name.replace(/</g, '&lt;')}</option>`).join('') : '<option value="">No saved grips yet</option>';
@@ -894,6 +912,21 @@ $('upload-file').addEventListener('change', async () => {
 });
 
 for (const b of $('views').querySelectorAll('button')) b.addEventListener('click', () => view.setView(b.dataset.view));
+view.onView.push((name) => { for (const b of $('views').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.view === name)); });
+for (const b of $('views').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.view === 'right'));
+const SIDE_KEY = 'recoil-control.side';
+function openSide(tab) {
+  for (const t of document.querySelectorAll('.side-tab')) t.setAttribute('aria-selected', String(t.dataset.tab === tab));
+  for (const p of document.querySelectorAll('.side-pop')) p.classList.toggle('shown', p.dataset.tab === tab);
+  if (!DEMO) try { localStorage.setItem(SIDE_KEY, tab || 'none'); } catch {   }
+  view.draw();
+}
+for (const t of document.querySelectorAll('.side-tab')) t.addEventListener('click', () => openSide(t.getAttribute('aria-selected') === 'true' ? null : t.dataset.tab));
+{
+  let start = matchMedia('(max-width: 860px)').matches ? null : 'key';
+  if (!DEMO) try { const kept = localStorage.getItem(SIDE_KEY); if (kept) start = kept === 'none' ? null : kept; } catch {   }
+  openSide(start);
+}
 $('show-data').addEventListener('change', () => notes.setShown($('show-data').checked));
 
 const HELP = {
@@ -946,10 +979,15 @@ document.addEventListener('keydown', (e) => {
 });
 
 $('stage').addEventListener('pointermove', (e) => {
-  const r = $('stage').getBoundingClientRect();
+  const r = $('open').getBoundingClientRect();
   $('hint').classList.toggle('faded', !!replay && r.bottom - e.clientY > 120);
 }, { passive: true });
-window.addEventListener('resize', () => { if (current) drawShotChart(replayMs()); spaceMarks(); });
+window.addEventListener('resize', () => { if (current) drawShotChart(replayMs()); spaceMarks(); gutter(); });
+function gutter() {
+  const b = $('steps-body'), cs = getComputedStyle(b);
+  b.style.setProperty('--scroll-gutter', `${Math.max(0, b.offsetWidth - b.clientWidth - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth))}px`);
+}
+gutter();
 
 setStep('grip'); setTool('push'); setShow('pressure'); pressOuts();
 updateGrip(); updateTrigger();
@@ -963,7 +1001,7 @@ if (DEMO) {
   app.demo = fire().then(() => {
     if (!replay) return;
     const s2 = replay.shot.out.shots[1];
-    replay.playing = false; $('play').textContent = 'Play';
+    replay.playing = false; playing(false);
     replay.tMs = (s2 ? s2.t / 1000 + 0.012 - replay.t0 : 0.012 - replay.t0) * 1000;
     tick(); view.renderNow();
   });

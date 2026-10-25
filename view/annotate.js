@@ -81,6 +81,7 @@ export function createAnnotations(view) {
     .map((e) => { const r = e.getBoundingClientRect(); return { lx: r.left - rect.left, ly: r.top - rect.top, w: r.width, h: r.height }; });
   view.afterLabels.push((camera, rect) => {
     const W0 = rect.width, H0 = rect.height;
+    const B = view.openBox();
     const list = slots.filter((s) => s.on);
     lines.setAttribute('width', W0); lines.setAttribute('height', H0);
     for (const s of slots) { s.line.setAttribute('visibility', 'hidden'); if (!s.on) s.el.style.display = 'none'; }
@@ -109,11 +110,11 @@ export function createAnnotations(view) {
     const slide = (it, start, dir) => {
       let ly = start, q, n = 0;
       while ((q = hit(it, ly)) && n++ < 60) ly = dir > 0 ? q.ly + q.h + GAP : q.ly - it.h - GAP;
-      return !hit(it, ly) && ly >= EDGE && ly + it.h <= H0 - EDGE ? ly : null;
+      return !hit(it, ly) && ly >= B.y + EDGE && ly + it.h <= B.y + B.h - EDGE ? ly : null;
     };
     for (const it of [...items].sort((p, q) => p.y - q.y)) {
-      const start = Math.max(EDGE, it.y - it.h - 4);
-      const sides = [it.x + 6, it.x - 6 - it.w].map((x) => Math.max(EDGE, Math.min(W0 - EDGE - it.w, x)));
+      const start = Math.max(B.y + EDGE, it.y - it.h - 4);
+      const sides = [it.x + 6, it.x - 6 - it.w].map((x) => Math.max(B.x + EDGE, Math.min(B.x + B.w - EDGE - it.w, x)));
       let ly = null;
       for (const lx of sides) {
         it.lx = lx;

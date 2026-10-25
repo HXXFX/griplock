@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net/npm/three@0.170.0/ https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/ 'sha256-iUEhSXhRSwkcEqveOHunxFv4nNd4Z/VMFGIhnwiktos='; style-src 'self' https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/; style-src-attr 'unsafe-inline'; font-src https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/; img-src 'self' data: blob:; connect-src 'self' blob:; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net/npm/three@0.170.0/ https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/ 'sha256-iUEhSXhRSwkcEqveOHunxFv4nNd4Z/VMFGIhnwiktos='; style-src 'self' https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/; style-src-attr 'unsafe-inline'; font-src https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/ https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/; img-src 'self' data: blob:; connect-src 'self' blob:; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GripLock - paint a grip, fire</title>
 <meta name="description" content="Paint where and how hard a grip presses on a Glock 17, paint the finger on the trigger, fire, and see the recoil and where the shot lands.">
@@ -10,7 +10,6 @@
 <script src="coi-start.js"></script>
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/wght.css" integrity="sha384-ZTIcl2CmY0wyM9ANOhomBco7rEUIlWztf6lGcLKCocKUrIgGCsfisuZyE+hadW8K" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.3.0/wght.css" integrity="sha384-bNykZ+bGB4FclZiYvLmgUfE8clWCvZlLOJ3v63czgIEgamTe0EhkaLXIbptJkvmW" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/michroma@5.3.0/latin-400.css" integrity="sha384-OxeabPnZYgG6cfpQ0THyn/XP/5lt4+Zu1lIsY3TJ96TgZd8DNOevRVQ+G6kpwQDc" crossorigin="anonymous">
 <script type="importmap">
 { "imports": {
@@ -27,9 +26,9 @@
 } }
 </script>
 </head>
-<body>
+<body class="app">
 <header class="bar">
-  <a class="home" href="./" title="GripLock - start over (your paint is kept in this browser)">
+  <a class="home glass" href="./" title="GripLock - start over (your paint is kept in this browser)">
     <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
       <g transform="translate(-0.32 1.96) scale(1.005)">
         <rect class="mark-slide" x="7" y="5" width="54" height="10.5" rx="3"/>
@@ -61,11 +60,29 @@
       <p class="hint">A grip is the paint on the grip and the trigger, and the press. Saved in this browser; a downloaded file opens on another computer.</p>
     </div>
   </div>
-  <a class="link" href="numbers.html" target="_blank" rel="noopener" aria-label="Where the numbers come from (opens in a new tab)">Where the numbers come from</a>
+  <div class="menu about" id="about-menu">
+    <button class="about-btn glass st idle" id="about-btn" aria-haspopup="true" aria-expanded="false" aria-controls="about-pop" aria-label="About GripLock: what worked the shot out, where the numbers come from, credits" title="About GripLock">i</button>
+    <div class="pop about-pop" id="about-pop" hidden>
+      <section>
+        <h3 class="pop-h">What worked it out</h3>
+        <p class="line"><span class="st idle" id="threads">processor threads</span></p>
+        <div class="more" id="threads-more"></div>
+      </section>
+      <section>
+        <h3 class="pop-h">The numbers</h3>
+        <p><a href="numbers.html" target="_blank" rel="noopener">Where the numbers come from</a>: every number the app uses, whether it is
+          measured, published or an estimate, and its source (opens in a new tab).</p>
+      </section>
+      <section>
+        <h3 class="pop-h">Credits</h3>
+        <div class="more" id="credits"></div>
+      </section>
+    </div>
+  </div>
 </header>
 
 <main class="layout">
-  <nav class="rail" id="rail" aria-label="Brush">
+  <nav class="rail pane" id="rail" aria-label="Brush">
     <button data-tool="push" data-mean="force" aria-pressed="true" title="Press: add pressure where you paint">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c4-1 6-4 7-8l5-8 3 2-5 8c-2 4-5 6-10 6z" fill="currentColor"/></svg><span>Press</span></button>
     <button data-tool="lighten" title="Lighten: take pressure away">
@@ -75,32 +92,49 @@
     <button data-tool="friction" data-mean="friction" title="Friction: paint how grippy the skin is (the grip only)">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-dasharray="2 2"/></svg><span>Friction</span></button>
     <span class="sep"></span>
-    <button id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Undo</span></button>
-    <button id="redo" title="Redo (Ctrl+Y)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 000 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Redo</span></button>
+    <button id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 010 11H11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Undo</span></button>
+    <button id="redo" title="Redo (Ctrl+Y)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 000 11H13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Redo</span></button>
   </nav>
 
   <section class="stage" id="stage" aria-label="The gun and the target">
     <canvas id="view"></canvas>
 
-    <div class="float views" id="views" role="toolbar" aria-label="Look from">
-      <button data-view="right">Right</button>
-      <button data-view="left">Left</button>
-      <button data-view="back">Back</button>
-      <button data-view="bottom">Below</button>
-      <button data-view="trigger">Trigger</button>
-      <button data-view="range">Down the range</button>
-      <button data-view="target">Target</button>
-      <label class="check"><input type="checkbox" id="show-data" checked> Numbers on the gun</label>
+    <div class="open" id="open">
+    <div class="side" id="side">
+      <div class="float side-pop solid-hover" id="pop-view" data-tab="view" role="tabpanel" aria-labelledby="tab-view">
+        <div class="pop-h">View</div>
+        <div class="view-list" id="views" role="group" aria-label="Look from">
+          <button data-view="right">Right</button>
+          <button data-view="left">Left</button>
+          <button data-view="back">Back</button>
+          <button data-view="bottom">Below</button>
+          <button data-view="trigger">Trigger</button>
+          <button data-view="range">Down the range</button>
+          <button data-view="target">Target</button>
+        </div>
+        <label class="check"><input type="checkbox" id="show-data" checked> Numbers on the gun</label>
+      </div>
+      <div class="float side-pop legend solid-hover" id="legend" data-tab="key" role="tabpanel" aria-labelledby="key-tab">
+        <div class="scale" id="legend-scale">
+          <div class="pop-h" id="legend-title">Pressure, psi</div>
+          <canvas id="legend-ramp" width="256" height="12"></canvas>
+          <div class="ticks" id="legend-ticks"></div>
+        </div>
+        <div class="kinds" aria-label="What each colour is">
+          <span class="push"><i></i>Push</span>
+          <span class="finger"><i></i>Finger</span>
+          <span class="angle"><i></i>Muzzle</span>
+          <span class="slide"><i></i>Slide</span>
+        </div>
+        <div class="slipkey" id="legend-slip" hidden><i></i> Skin sliding on the gun</div>
+      </div>
+      <div class="float side-tabs" role="tablist" aria-label="Side panels" aria-orientation="vertical">
+        <button class="side-tab" role="tab" id="tab-view" data-tab="view" aria-selected="false" aria-controls="pop-view">View</button>
+        <button class="side-tab" role="tab" id="key-tab" data-tab="key" aria-selected="true" aria-controls="legend">Pressure</button>
+      </div>
     </div>
 
-    <div class="float legend" id="legend">
-      <div class="caps" id="legend-title">Pressure, psi</div>
-      <canvas id="legend-ramp" width="256" height="12"></canvas>
-      <div class="ticks" id="legend-ticks"></div>
-      <div class="slipkey" id="legend-slip" hidden><i></i> skin sliding on the gun</div>
-    </div>
-
-    <div class="float scope" id="scope" role="group" aria-label="The target, close up">
+    <div class="float scope solid-hover" id="scope" role="group" aria-label="The target, close up">
       <div class="scope-bar" id="scope-bar" title="Drag to move the window; double-click to put it back in the corner">
         <span class="caps">Target</span>
         <output id="distance-out" class="num">7 yd</output>
@@ -140,19 +174,20 @@
         <div class="pct" id="cover-pct">&nbsp;</div>
       </div>
     </div>
+    </div>
   </section>
 
-  <aside class="panel" id="panel">
+  <aside class="panel pane solid-hover" id="panel">
     <nav class="steps" id="steps" role="tablist" aria-label="Steps">
       <button role="tab" data-step="grip" aria-selected="true"><span class="n">1</span> Grip</button>
       <button role="tab" data-step="trigger" aria-selected="false"><span class="n">2</span> Trigger</button>
       <button role="tab" data-step="shot" aria-selected="false"><span class="n">3</span> Shot</button>
     </nav>
-    <div class="steps-body">
+    <div class="steps-body" id="steps-body">
       <section class="step" data-step="grip" role="tabpanel" aria-label="Grip">
         <h2>Paint the grip <button class="help" data-help="grip" aria-label="How painting the grip works">?</button></h2>
         <section class="grp" data-sec="squeeze">
-          <h3 class="grp-h"><span>Squeeze</span><span class="sv num" id="g-squeeze"></span><button class="help info" data-info="squeeze" aria-label="About the squeeze">i</button></h3>
+          <h3 class="grp-h"><span>Squeeze</span><button class="help info" data-info="squeeze" aria-label="About the squeeze">i</button><span class="sv num" id="g-squeeze"></span></h3>
           <div class="in">
             <div class="gauge limit" aria-hidden="true"><i id="g-gauge"></i></div>
             <div class="pair"><label for="hands">Whose hands</label><select id="hands"></select></div>
@@ -186,7 +221,7 @@
           </div>
         </section>
         <section class="grp" data-sec="balance">
-          <h3 class="grp-h"><span>Balance</span><span class="sv num" id="sv-balance"></span><button class="help info" data-info="balance" aria-label="About the balance">i</button></h3>
+          <h3 class="grp-h"><span>Balance</span><button class="help info" data-info="balance" aria-label="About the balance">i</button><span class="sv num" id="sv-balance"></span></h3>
           <div class="in"><div class="kv" id="g-balance"></div><p class="note warn" id="g-balance-warn" hidden></p></div>
         </section>
       </section>
@@ -194,7 +229,7 @@
       <section class="step" data-step="trigger" role="tabpanel" aria-label="Trigger" hidden>
         <h2>Paint the finger on the trigger <button class="help" data-help="trigger" aria-label="How the trigger works">?</button></h2>
         <section class="grp" data-sec="face">
-          <h3 class="grp-h"><span>Full press</span><span class="sv num" id="t-face"></span><button class="help info" data-info="face" aria-label="About the full press">i</button></h3>
+          <h3 class="grp-h"><span>Full press</span><button class="help info" data-info="face" aria-label="About the full press">i</button><span class="sv num" id="t-face"></span></h3>
           <div class="in">
             <div class="gauge" aria-hidden="true"><i id="t-gauge"></i><b id="t-break"></b></div>
             <div class="kv" id="t-face-kv"></div>
@@ -221,7 +256,7 @@
           </div>
         </section>
         <section class="grp" data-sec="finger">
-          <h3 class="grp-h"><span>Finger strength</span><span class="sv num" id="t-push"></span><button class="help info" data-info="finger" aria-label="About the finger's strength">i</button></h3>
+          <h3 class="grp-h"><span>Finger strength</span><button class="help info" data-info="finger" aria-label="About the finger's strength">i</button><span class="sv num" id="t-push"></span></h3>
           <div class="in">
             <div class="gauge limit" aria-hidden="true"><i id="t-limit"></i></div>
             <p class="note warn" id="t-limit-note" hidden></p>
@@ -237,27 +272,27 @@
           <div class="note" id="r-stale" hidden>The paint has changed since this shot. Fire again to see the new paint.</div>
           <div id="r-body">
             <section class="grp" data-sec="landed">
-              <h3 class="grp-h"><span>Landed</span><span class="sv" id="hit"></span><button class="help info" data-info="landed" aria-label="About where it landed">i</button></h3>
+              <h3 class="grp-h"><span>Landed</span><button class="help info" data-info="landed" aria-label="About where it landed">i</button><span class="sv" id="hit"></span></h3>
               <div class="in"><div class="kv" id="hit-d"></div></div>
             </section>
             <section class="grp" data-sec="string" id="string-sec" hidden>
-              <h3 class="grp-h"><span>The string</span><span class="sv" id="sv-string"></span><button class="help info" data-info="string" aria-label="About the string">i</button></h3>
+              <h3 class="grp-h"><span>The string</span><button class="help info" data-info="string" aria-label="About the string">i</button><span class="sv" id="sv-string"></span></h3>
               <div class="in" id="r-string"></div>
             </section>
             <section class="grp" data-sec="move">
-              <h3 class="grp-h"><span>The gun's movement</span><span class="sv num" id="sv-move"></span><button class="help info" data-info="move" aria-label="About the gun's movement">i</button></h3>
+              <h3 class="grp-h"><span>The gun's movement</span><button class="help info" data-info="move" aria-label="About the gun's movement">i</button><span class="sv num" id="sv-move"></span></h3>
               <div class="in"><div class="kv three" id="r-stats"></div></div>
             </section>
             <section class="grp" data-sec="trigger">
-              <h3 class="grp-h"><span>The trigger</span><span class="sv" id="sv-trigger"></span><button class="help info" data-info="shot-trigger" aria-label="About the trigger in the shot">i</button></h3>
+              <h3 class="grp-h"><span>The trigger</span><button class="help info" data-info="shot-trigger" aria-label="About the trigger in the shot">i</button><span class="sv" id="sv-trigger"></span></h3>
               <div class="in"><div class="kv" id="press-note"></div></div>
             </section>
             <section class="grp" data-sec="time">
-              <h3 class="grp-h"><span>Over time</span><select class="sv-select" id="chart-q" aria-label="What the chart shows"></select><button class="help info" data-info="time" aria-label="About the chart">i</button></h3>
+              <h3 class="grp-h"><span>Over time</span><button class="help info" data-info="time" aria-label="About the chart">i</button><select class="sv-select" id="chart-q" aria-label="What the chart shows"></select></h3>
               <div class="in"><canvas class="chart" id="chart" aria-label="The shot over time"></canvas><p class="chart-key" id="chart-key"></p></div>
             </section>
             <section class="grp" data-sec="slide">
-              <h3 class="grp-h"><span>The slide</span><span class="sv" id="sv-slide"></span><button class="help info" data-info="slide" aria-label="About the slide">i</button></h3>
+              <h3 class="grp-h"><span>The slide</span><button class="help info" data-info="slide" aria-label="About the slide">i</button><span class="sv" id="sv-slide"></span></h3>
               <div class="in"><div class="kv" id="r-cycle"></div></div>
             </section>
           </div>
@@ -280,16 +315,11 @@
       <div class="slim" id="split-field"><label for="split">Apart</label><input id="split" type="range" min="0.12" max="1" step="0.01" value="0.25"><output id="split-out" class="num"></output></div>
       <p class="note warn" id="fire-warn" hidden></p>
       <button class="big fire" id="fire">Fire</button>
-      <p class="foot-line">
-        <button class="help info link" data-info="threads" id="threads">processor threads</button>
-        <span aria-hidden="true">&middot;</span>
-        <button class="help info link" data-info="credits">Credits</button>
-      </p>
     </footer>
   </aside>
 
-  <footer class="timeline" id="timeline">
-    <button id="play" aria-label="Play or pause the replay" disabled>Play</button>
+  <footer class="timeline pane" id="timeline">
+    <button id="play" class="icon-btn" aria-label="Play the replay" title="Play (Space)" disabled><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5.5" width="3.5" height="13" rx="1" fill="currentColor"/><rect x="13.5" y="5.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg></button>
     <div class="track">
       <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Time in the shot" disabled>
       <div class="marks" id="marks"></div>
