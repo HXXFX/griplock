@@ -30,6 +30,7 @@ const f = (x, d = 1) => (x === null || x === undefined || !Number.isFinite(x) ? 
 const app = (window.__app = { ready: false });
 const BREAK = val(GLOCK_TRIGGER.breakForce);
 const INFO = {};
+store.moveOldNames();
 
 const cover = { show(phase, share) { $('cover').hidden = false; $('cover-phase').textContent = phase; $('cover-bar').style.width = `${Math.round((share || 0) * 100)}%`; $('cover-pct').textContent = share === null ? ' ' : `${Math.round((share || 0) * 100)}%`; }, hide() { $('cover').hidden = true; } };
 cover.show('Loading the gun', 0);
@@ -49,9 +50,9 @@ const DEMO = false;
 const scope = createScope({
   win: $('scope'), bar: $('scope-bar'), paper: $('scope-paper'), grip: $('scope-grip'), stage: $('open'),
   zoomOut: $('scope-out'), zoomIn: $('scope-in'), zoomText: $('scope-x'), fitShots: $('scope-fit'), wholeCard: $('scope-card'),
-  keep: DEMO ? null : 'recoil-control.scope',
+  keep: DEMO ? null : 'griplock.scope',
 });
-const HANDS_KEY = 'recoil-control.hands';
+const HANDS_KEY = 'griplock.hands';
 let hands = 'man';
 try { const h = localStorage.getItem(HANDS_KEY); if (h in STRENGTH) hands = h; } catch {   }
 const mostSqueeze = () => val(STRENGTH[hands].grip) + val(STRENGTH[hands].support);
@@ -914,7 +915,7 @@ $('upload-file').addEventListener('change', async () => {
 for (const b of $('views').querySelectorAll('button')) b.addEventListener('click', () => view.setView(b.dataset.view));
 view.onView.push((name) => { for (const b of $('views').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.view === name)); });
 for (const b of $('views').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.view === 'right'));
-const SIDE_KEY = 'recoil-control.side';
+const SIDE_KEY = 'griplock.side';
 function openSide(tab) {
   for (const t of document.querySelectorAll('.side-tab')) t.setAttribute('aria-selected', String(t.dataset.tab === tab));
   for (const p of document.querySelectorAll('.side-pop')) p.classList.toggle('shown', p.dataset.tab === tab);

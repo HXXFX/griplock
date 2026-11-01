@@ -1,8 +1,21 @@
 
-const KEY_NOW = 'recoil-control.paint.now';
-const KEY_SAVED = 'recoil-control.paint.saved';
-export const FORMAT = 'recoil-control-grip-2';
+const KEY_NOW = 'griplock.paint.now';
+const KEY_SAVED = 'griplock.paint.saved';
+export const FORMAT = 'griplock-grip-2';
+const FORMAT_2_OLD = 'recoil-control-grip-2';
 const FORMAT_1 = 'recoil-control-grip-1';
+
+const OLD_PREFIX = 'recoil-control.', NEW_PREFIX = 'griplock.';
+export function moveOldNames() {
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (!k.startsWith(OLD_PREFIX)) continue;
+      const nk = NEW_PREFIX + k.slice(OLD_PREFIX.length), v = localStorage.getItem(k);
+      if (localStorage.getItem(nk) === null) localStorage.setItem(nk, v);
+      if (localStorage.getItem(nk) === v) localStorage.removeItem(k);
+    }
+  } catch {   }
+}
 
 export function surfaceSignature(s) {
   let h = 2166136261 >>> 0;
@@ -23,13 +36,14 @@ export function encode(grip, sigs, name = '') {
   };
 }
 export function decode(obj, sigs) {
-  if (!obj || (obj.format !== FORMAT && obj.format !== FORMAT_1)) throw new Error('This is not a GripLock grip file.');
+  const two = !!obj && (obj.format === FORMAT || obj.format === FORMAT_2_OLD);
+  if (!obj || (!two && obj.format !== FORMAT_1)) throw new Error('This is not a GripLock grip file.');
   if (obj.surface !== sigs.frame) throw new Error('This grip was painted on a different version of the gun\'s surface points, so it would land on the wrong spots.');
   const pressure = fromB64(obj.pressure), friction = fromB64(obj.friction);
   const n = Number(sigs.frame.split(':')[0]);
   if (pressure.length !== n || friction.length !== n) throw new Error('This grip file is damaged.');
   let trigger = null, press = null;
-  if (obj.format === FORMAT) {
+  if (two) {
     if (obj.triggerSurface !== sigs.trigger) throw new Error('This grip\'s trigger paint was made on a different version of the trigger\'s points.');
     const tp = fromB64(obj.triggerPressure);
     if (tp.length !== Number(sigs.trigger.split(':')[0])) throw new Error('This grip file is damaged.');
