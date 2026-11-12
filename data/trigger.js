@@ -2,8 +2,8 @@
 import { n } from './num.js';
 
 export const GLOCK_TRIGGER = {
-  breakForce: n(25.6, 'N', 'measured', ['all4shootersGPT'], 'Stock Gen5, mean of 10 pulls (5.8 lb).'),
-  travel: n(12.5, 'mm', 'press', ['athlonGen5'], 'Total travel from rest to the stop.'),
+  breakForce: n(25.6, 'N', 'measured', ['all4shootersGPT', 'glockGen4Catalogue'], 'A stock Gen 5, mean of 10 pulls (5.8 lb). No stock Gen 4 has been measured as carefully (single readings run 5.2 to 8 lb); GLOCK gives the Gen 4 the same standard 5.5 lb connector, about 25 N.'),
+  travel: n(12.5, 'mm', 'maker', ['glockGen4Catalogue'], 'Total travel from rest to the stop (about 12.5 mm).'),
   curve: n([[0, 4], [6.8, 11], [7.6, 13], [8.4, 25.6], [8.45, 7], [12.5, 8]], 'mm, N', 'estimate', [],
     'Take-up rising to a wall, a short stiff press through the wall, the break, then overtravel to the stop. Shape estimated; ends measured.'),
   breakAt: n(8.4, 'mm', 'estimate', [], 'Travel at the break: where the curve above peaks.'),
@@ -20,7 +20,7 @@ export const TRIGGER_FINGER = {
 };
 
 export const RIFLING = {
-  twist: n(0.25, 'm per turn', 'press', ['athlonGen5'], 'Right-hand, 250 mm (9.84 in) per turn, hexagonal (the GLOCK Marksman Barrel), as GLOCK\'s Gen5 launch spec sheet gives it; not on GLOCK\'s own product page.'),
+  twist: n(0.25, 'm per turn', 'maker', ['glockGen4Catalogue'], 'Right-hand, hexagonal, 250 mm (9.84 in) per turn: GLOCK\'s Gen 4 catalogue, for its 9x19 barrels.'),
   spinShare: n(0.5, 'x m r2', 'estimate', [], "The bullet's turning inertia about its axis, as a share of its mass times its radius squared: 0.5 for a solid cylinder of even density. A jacketed lead bullet is close to it."),
   bulletDiameter: n(0.00902, 'm', 'standard', ['saami9mm'], '0.355 in: the 9mm Luger bullet diameter.'),
 };

@@ -34,7 +34,7 @@ const fmt = (v, unit) => {
 };
 
 const groups = [
-  ['The gun: Glock 17 Gen 5', { spec: gun.GLOCK17.spec }],
+  [`The gun: ${gun.GLOCK17.name}`, { spec: gun.GLOCK17.spec }],
   ['The ammunition', { loads: ammo.AMMO, ballistics: ammo.BALLISTICS }],
   ['The painted hold: flesh, friction, grip strength', { flesh: skin.FLESH, friction: skin.FRICTION, sliding: { share: skin.KINETIC_RATIO }, squeeze: skin.SQUEEZE, starting: { squeeze: skin.TYPICAL_SQUEEZE } }],
   ['The hands\' limits: how hard they can squeeze and press, how they tire', { hands: skin.STRENGTH, tiring: skin.FATIGUE }],

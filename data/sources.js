@@ -1,11 +1,18 @@
 
 export const SOURCES = {
-  glockG5: {
-    title: 'G17 Gen5 FS specifications',
+  glockG17Gen4: {
+    title: 'G17 Gen4 specifications',
     who: 'GLOCK (maker)',
-    url: 'https://us.glock.com/en/Pistols/G17-Gen5-FS-US',
+    url: 'https://eu.glock.com/en/products/pistols/g17-gen4',
     kind: 'maker',
-    says: '630 g without magazine, 708 g with empty magazine, 114 mm barrel, 202 mm long, 34 mm wide, 139 mm tall, 26 N trigger pull, 165 mm sight radius. (The page was gone on 23 Oct 2026; GLOCK now sells a Gen6.)',
+    says: '202 mm long, slide 186 mm, 32 mm wide, slide 25.5 mm wide, 139 mm tall with the magazine, sights 165 mm apart (polymer; steel 164, night sights 163), barrel 114 mm; 625 g without magazine, 705 g with an empty one, 915 g loaded; trigger pull 28 N ("depends on the configuration"); 17 rounds. Read 12 Nov 2026. (The app used the Gen 5 page until then: 630 g, 708 g, 34 mm, 26 N.)',
+  },
+  glockGen4Catalogue: {
+    title: 'GLOCK Generation 4 models (catalogue)',
+    who: 'GLOCK (maker)',
+    url: 'https://www.krale.shop/media/blfa_files/Glock_Generation_4_Models_manual_exploded_view_EN-min_2.pdf',
+    kind: 'maker',
+    says: 'G17 Gen4: trigger pull about 25 N / 5.5 lb (the standard 2.5 kg connector), trigger travel about 12.5 mm, slide 186 mm, sights 165 mm apart, barrel 114 mm, 30 mm wide, 138 mm tall; 710 g with an empty magazine, 910 g loaded. Every 9x19 barrel: right-hand, hexagonal, 250 mm (9.84 in) per turn. An older edition than the product page (its weights and width differ a little). Hosted by a shop, not by GLOCK; read 12 Nov 2026.',
   },
   glockG17: {
     title: 'G17 specifications (the generation before Gen6, still listed)',
@@ -13,20 +20,6 @@ export const SOURCES = {
     url: 'https://eu.glock.com/en/products/pistols/g17',
     kind: 'maker',
     says: '625 g without magazine, 705 g with an empty magazine, 915 g with a loaded magazine ("depends on ammunition used"); 17 rounds; trigger pull 28 N ("depends on configuration"); 114 mm barrel, 186 mm slide. Read 23 Oct 2026.',
-  },
-  glockG4: {
-    title: 'G17 Gen4 MOS specifications',
-    who: 'GLOCK (maker)',
-    url: 'https://us.glock.com/en/Pistols/G17-Gen4-MOS',
-    kind: 'maker',
-    says: 'Slide length 186 mm; 625 g without magazine, 915 g loaded.',
-  },
-  athlonGen5: {
-    title: 'GLOCK Gen5 pistols (launch spec sheet)',
-    who: 'Athlon Outdoors',
-    url: 'https://athlonoutdoors.com/article/glock-gen5-pistols/',
-    kind: 'press',
-    says: 'Trigger pull about 2.5 kg / 5.5 lb; trigger travel about 12.5 mm.',
   },
   all4shootersGPT: {
     title: 'Experiences with the new Glock Performance Trigger',
